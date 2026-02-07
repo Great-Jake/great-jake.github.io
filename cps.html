@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>10x CPS Test</title>
+<style>
+  * {
+    box-sizing: border-box;
+    user-select: none;
+  }
+
+  body {
+    margin: 0;
+    height: 100vh;
+    background: #0f1115;
+    color: #fff;
+    font-family: "Segoe UI", Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+  }
+
+  .container {
+    width: 420px;
+    text-align: center;
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 18px;
+    color: #00ccff;
+    text-decoration: none;
+  }
+
+  .back-link:hover {
+    color: #00ff88;
+  }
+
+  .click-box {
+    background: #161a22;
+    border-radius: 18px;
+    padding: 60px 20px;
+    font-size: 36px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.05s;
+  }
+
+  .click-box.disabled {
+    cursor: default;
+    background: #141820;
+  }
+
+  .click-box:active:not(.disabled) {
+    transform: scale(0.98);
+    background: #1d2230;
+  }
+
+  .progress-wrapper {
+    margin-top: 25px;
+    background: #1a1e29;
+    border-radius: 999px;
+    overflow: hidden;
+    height: 14px;
+  }
+
+  .progress {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00ff88, #00ccff);
+  }
+
+  .info {
+    margin-top: 18px;
+    font-size: 16px;
+    color: #aaa;
+  }
+
+  .result {
+    margin-top: 18px;
+    font-size: 26px;
+    font-weight: bold;
+    color: #00ff88;
+    display: none;
+  }
+
+  .retry-btn {
+    margin-top: 16px;
+    padding: 12px 28px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #1a1e29;
+    color: #fff;
+    display: none;
+  }
+
+  .retry-btn:hover {
+    background: #23283a;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <a class="back-link" href="index.html">← Back to home</a>
+  <div id="clickBox" class="click-box">
+    Click to Start
+  </div>
+
+  <div class="progress-wrapper">
+    <div id="progress" class="progress"></div>
+  </div>
+
+  <div id="info" class="info">
+    10 tests • 1 second each
+  </div>
+
+  <div id="result" class="result"></div>
+  <button id="retryBtn" class="retry-btn">Try Again</button>
+</div>
+
+<script>
+  const clickBox = document.getElementById("clickBox");
+  const progress = document.getElementById("progress");
+  const info = document.getElementById("info");
+  const result = document.getElementById("result");
+  const retryBtn = document.getElementById("retryBtn");
+
+  let test = 0;
+  let clicks = 0;
+  let totalClicks = 0;
+  let running = false;
+  let startTime;
+  let interval;
+
+  clickBox.addEventListener("click", () => {
+    if (!running && test === 0) {
+      startTest();
+    } else if (running) {
+      clicks++;
+    }
+  });
+
+  retryBtn.onclick = reset;
+
+  function startTest() {
+    running = true;
+    clicks = 0;
+    test++;
+
+    progress.style.width = "0%";
+    clickBox.textContent = "CLICK!";
+    info.textContent = `Test ${test} / 10`;
+
+    startTime = performance.now();
+    interval = setInterval(updateProgress, 10);
+
+    setTimeout(endTest, 1000);
+  }
+
+  function updateProgress() {
+    const elapsed = performance.now() - startTime;
+    progress.style.width = Math.min(elapsed / 10, 100) + "%";
+  }
+
+  function endTest() {
+    clearInterval(interval);
+    running = false;
+    totalClicks += clicks;
+
+    if (test < 10) {
+      startTest();
+    } else {
+      startResultLoading();
+    }
+  }
+
+  function startResultLoading() {
+    clickBox.classList.add("disabled");
+    clickBox.textContent = "Calculating...";
+    info.textContent = "Finalizing results";
+
+    progress.style.width = "0%";
+    let start = performance.now();
+
+    interval = setInterval(() => {
+      const elapsed = performance.now() - start;
+      progress.style.width = Math.min(elapsed / 50, 100) + "%";
+
+      if (elapsed >= 5000) {
+        clearInterval(interval);
+        showResult();
+      }
+    }, 16);
+  }
+
+  function showResult() {
+    const avg = (totalClicks / 10).toFixed(2);
+    result.textContent = `Average CPS: ${avg}`;
+    result.style.display = "block";
+    retryBtn.style.display = "inline-block";
+    clickBox.textContent = "Done";
+    info.textContent = "Test Complete";
+  }
+
+  function reset() {
+    test = 0;
+    totalClicks = 0;
+    clicks = 0;
+    running = false;
+
+    progress.style.width = "0%";
+    result.style.display = "none";
+    retryBtn.style.display = "none";
+
+    clickBox.classList.remove("disabled");
+    clickBox.textContent = "Click to Start";
+    info.textContent = "10 tests • 1 second each";
+  }
+</script>
+
+</body>
+</html>
