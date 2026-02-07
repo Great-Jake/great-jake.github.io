@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Keyboard Test</title>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: #0f1115;
+    color: #fff;
+    font-family: "Segoe UI", Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+  }
+
+  .container {
+    width: min(860px, 100%);
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 18px;
+    color: #00ccff;
+    text-decoration: none;
+  }
+
+  .back-link:hover {
+    color: #00ff88;
+  }
+
+  h1 {
+    margin: 0 0 10px;
+    font-size: 32px;
+  }
+
+  .sub {
+    margin: 0 0 20px;
+    color: #b2b6c5;
+  }
+
+  .status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    background: #161a22;
+    border-radius: 14px;
+    padding: 14px 18px;
+  }
+
+  .status span {
+    font-weight: 600;
+  }
+
+  .timer {
+    font-size: 22px;
+    color: #00ff88;
+  }
+
+  .word-box {
+    background: #161a22;
+    border-radius: 18px;
+    padding: 26px;
+    min-height: 140px;
+    border: 1px solid #1e2430;
+    line-height: 1.8;
+    font-size: 20px;
+  }
+
+  .word-box span {
+    margin-right: 6px;
+  }
+
+  .word-box .current {
+    color: #00ccff;
+    border-bottom: 2px solid #00ccff;
+  }
+
+  .word-box .correct {
+    color: #00ff88;
+  }
+
+  .word-box .incorrect {
+    color: #ff6b6b;
+  }
+
+  .input-row {
+    margin-top: 18px;
+    display: flex;
+    gap: 12px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid #2a3140;
+    background: #0f1115;
+    color: #fff;
+    font-size: 18px;
+  }
+
+  .primary-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 12px;
+    background: #00ccff;
+    color: #0f1115;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .primary-btn:hover {
+    background: #00ff88;
+  }
+
+  .result {
+    margin-top: 18px;
+    font-size: 22px;
+    font-weight: 600;
+    color: #00ff88;
+  }
+
+  .helper {
+    margin-top: 8px;
+    color: #8f96a8;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+  <main class="container">
+    <a class="back-link" href="index.html">← Back to home</a>
+    <h1>Keyboard Test</h1>
+    <p class="sub">Type the words for 60 seconds. Your average WPM will appear when the timer ends.</p>
+
+    <div class="status">
+      <div>WPM: <span id="wpm">0</span></div>
+      <div class="timer" id="timer">60s</div>
+    </div>
+
+    <section class="word-box" id="wordBox"></section>
+
+    <div class="input-row">
+      <input id="wordInput" type="text" placeholder="Start typing here..." autocomplete="off" />
+      <button class="primary-btn" id="startBtn">Start</button>
+    </div>
+    <div class="result" id="result"></div>
+    <div class="helper">Tip: Press space after each word. Accuracy matters!</div>
+  </main>
+
+<script>
+  const wordBank = [
+    "able", "about", "above", "accept", "across", "action", "active", "actor", "actual", "adapt",
+    "address", "admit", "adult", "affect", "after", "again", "against", "agency", "agree", "ahead",
+    "alert", "allow", "almost", "alone", "along", "already", "also", "always", "amazing", "among",
+    "amount", "ancient", "anger", "angle", "animal", "answer", "anyone", "appear", "apple", "apply",
+    "arena", "argue", "arise", "army", "around", "arrive", "artist", "aspect", "assist", "assume",
+    "attack", "attend", "author", "autumn", "average", "avoid", "award", "aware", "awful", "baby",
+    "back", "balance", "ball", "band", "bank", "basic", "basket", "battle", "beach", "beauty",
+    "because", "become", "before", "begin", "behave", "behind", "belief", "belong", "benefit", "beside",
+    "better", "between", "beyond", "bicycle", "billion", "bird", "birth", "black", "blank", "blind",
+    "block", "blood", "board", "body", "bonus", "border", "borrow", "bottle", "bottom", "bounce",
+    "brain", "branch", "brand", "brave", "bread", "break", "brief", "bright", "bring", "broad",
+    "broken", "brown", "budget", "build", "bullet", "buyer", "camera", "cancel", "cancer", "candidate",
+    "canvas", "capital", "captain", "carbon", "career", "careful", "carry", "catch", "cause", "center",
+    "central", "century", "certain", "chance", "change", "charge", "chase", "cheap", "check", "cheer",
+    "cheese", "choice", "choose", "circle", "citizen", "city", "civil", "claim", "class", "clean",
+    "clear", "click", "client", "climb", "clock", "close", "cloud", "coach", "coast", "coffee",
+    "collect", "color", "column", "combat", "come", "comfort", "comic", "common", "company", "compare",
+    "compete", "complex", "concept", "concern", "concert", "conduct", "confirm", "connect", "consider", "control",
+    "convert", "cookie", "corner", "correct", "cost", "cotton", "could", "council", "count", "country",
+    "course", "cover", "create", "credit", "crew", "crime", "crisis", "critic", "crowd", "crucial",
+    "culture", "curious", "custom", "cycle", "damage", "dance", "danger", "data", "daughter", "debate",
+    "decade", "decide", "declare", "decline", "default", "defeat", "defend", "define", "degree", "delay",
+    "deliver", "demand", "depend", "design", "desire", "detail", "detect", "device", "dialog", "differ",
+    "dinner", "direct", "doctor", "document", "domain", "double", "dragon", "dream", "drink", "drive",
+    "during", "early", "earth", "easily", "eastern", "economy", "edge", "editor", "effect", "effort",
+    "either", "elder", "electric", "element", "else", "email", "emerge", "emotion", "employ", "enable",
+    "energy", "engage", "engine", "enjoy", "enough", "ensure", "enter", "entire", "entry", "equal",
+    "escape", "estate", "ethics", "even", "event", "every", "exact", "except", "excite", "excuse",
+    "expand", "expect", "expert", "explain", "extend", "extra", "fabric", "face", "factor", "fair",
+    "faith", "false", "family", "famous", "fast", "father", "fault", "favor", "feature", "federal",
+    "female", "fence", "fewer", "field", "fight", "figure", "final", "finance", "finger", "finish",
+    "fire", "first", "fitness", "flower", "focus", "follow", "force", "forest", "forget", "formal",
+    "former", "frame", "free", "friend", "front", "fruit", "future", "gallery", "garden", "gather",
+    "general", "gentle", "giant", "gift", "girl", "glass", "global", "glory", "gold", "govern",
+    "grab", "grade", "grain", "grand", "grant", "grass", "great", "green", "ground", "group",
+    "growth", "guard", "guess", "guide", "guitar", "habit", "half", "hammer", "handle", "happy",
+    "harbor", "hard", "harmony", "harvest", "health", "heavy", "height", "hello", "hidden", "high",
+    "history", "hobby", "hold", "holiday", "honest", "honor", "hope", "hotel", "house", "human",
+    "humble", "humor", "hunger", "ice", "ideal", "image", "impact", "import", "improve", "income",
+    "indeed", "index", "industry", "inform", "inside", "insist", "instead", "intend", "interest", "invite",
+    "island", "issue", "item", "itself", "jacket", "jelly", "jewel", "join", "jolly", "journey",
+    "judge", "juice", "jump", "junior", "keep", "kernel", "kitchen", "knife", "knowledge", "label",
+    "labor", "ladder", "lady", "lake", "large", "laser", "later", "laugh", "layer", "leader",
+    "learn", "leave", "legal", "legend", "lesson", "letter", "level", "library", "light", "limit",
+    "listen", "little", "local", "logic", "lonely", "long", "lovely", "loyal", "lucky", "lunch",
+    "magic", "major", "maker", "manage", "manner", "market", "master", "matter", "maybe", "media",
+    "memory", "mental", "message", "method", "middle", "minute", "mirror", "mobile", "model", "modern",
+    "moment", "money", "month", "moral", "mother", "motion", "mountain", "movie", "music", "mystery",
+    "nation", "native", "nature", "near", "nearly", "needle", "neighbor", "nervous", "network", "never",
+    "news", "night", "noble", "noise", "normal", "north", "notice", "number", "object", "observe",
+    "ocean", "offer", "office", "often", "open", "option", "orange", "orbit", "order", "origin",
+    "output", "outside", "owner", "package", "page", "paint", "panel", "paper", "parent", "party",
+    "past", "patch", "peace", "people", "pepper", "period", "person", "photo", "piano", "picture",
+    "piece", "pilot", "pitch", "place", "planet", "plant", "plastic", "please", "pocket", "poem",
+    "point", "police", "policy", "popular", "portion", "possible", "power", "praise", "prefer", "prepare",
+    "present", "pretty", "price", "pride", "prime", "print", "private", "prize", "problem", "process",
+    "profit", "proper", "public", "pulse", "pure", "purple", "puzzle", "quality", "quick", "quiet",
+    "quote", "radio", "raise", "random", "range", "rapid", "rare", "rather", "reach", "ready",
+    "reason", "record", "reduce", "refine", "reform", "refuse", "region", "relax", "release", "relief",
+    "remain", "remote", "remove", "repair", "repeat", "replace", "report", "require", "rescue", "result",
+    "return", "reveal", "reward", "rhythm", "rich", "river", "road", "robot", "rock", "role",
+    "room", "rough", "round", "route", "royal", "rural", "safety", "sail", "salad", "sample",
+    "satisfy", "school", "science", "screen", "search", "season", "second", "secret", "section", "secure",
+    "select", "senior", "sense", "series", "service", "settle", "shadow", "shape", "share", "shift",
+    "shine", "short", "should", "signal", "silent", "silver", "simple", "single", "sister", "skill",
+    "sleep", "small", "smart", "smooth", "social", "soft", "solid", "solve", "sorry", "sound",
+    "source", "south", "space", "spare", "speak", "special", "speech", "speed", "spend", "spirit",
+    "split", "sport", "spread", "spring", "square", "stable", "staff", "stage", "stand", "star",
+    "state", "steady", "steel", "step", "still", "stock", "stone", "store", "storm", "story",
+    "stream", "street", "strength", "strike", "string", "strong", "studio", "study", "style", "submit",
+    "success", "sudden", "suffer", "summer", "supply", "sure", "survey", "switch", "symbol", "system",
+    "table", "talent", "target", "teach", "team", "tempo", "tender", "tennis", "thank", "theory",
+    "thick", "thing", "think", "third", "thought", "thread", "thrive", "ticket", "tight", "timber",
+    "timer", "title", "today", "topic", "total", "touch", "tour", "toward", "tower", "track",
+    "trade", "trail", "train", "travel", "treat", "trend", "trial", "trust", "truth", "tunnel",
+    "turn", "tutor", "twenty", "twice", "unable", "uncle", "under", "unit", "update", "upper",
+    "urban", "useful", "usual", "value", "valley", "vast", "venue", "version", "video", "village",
+    "visual", "voice", "volume", "wage", "wait", "walk", "wall", "wander", "warm", "watch",
+    "water", "wealth", "weapon", "weather", "week", "weight", "welcome", "western", "window", "winner",
+    "winter", "wisdom", "wonder", "world", "writer", "yellow", "yield", "young", "youth", "zebra"
+  ];
+
+  const wordBox = document.getElementById("wordBox");
+  const wordInput = document.getElementById("wordInput");
+  const startBtn = document.getElementById("startBtn");
+  const timerEl = document.getElementById("timer");
+  const wpmEl = document.getElementById("wpm");
+  const resultEl = document.getElementById("result");
+
+  let words = [];
+  let currentIndex = 0;
+  let timer = null;
+  let startTime = null;
+  let timeLeft = 60;
+  let correctChars = 0;
+  let running = false;
+
+  function shuffleWords() {
+    const pool = Array.from({ length: 200 }, () => wordBank[Math.floor(Math.random() * wordBank.length)]);
+    words = pool;
+  }
+
+  function renderWords() {
+    wordBox.innerHTML = "";
+    words.forEach((word, index) => {
+      const span = document.createElement("span");
+      span.textContent = word;
+      if (index === currentIndex) {
+        span.classList.add("current");
+      }
+      wordBox.appendChild(span);
+    });
+  }
+
+  function resetTest() {
+    currentIndex = 0;
+    timeLeft = 60;
+    correctChars = 0;
+    running = false;
+    wpmEl.textContent = "0";
+    timerEl.textContent = "60s";
+    resultEl.textContent = "";
+    wordInput.value = "";
+    wordInput.disabled = true;
+    shuffleWords();
+    renderWords();
+  }
+
+  function startTest() {
+    if (running) {
+      return;
+    }
+    running = true;
+    wordInput.disabled = false;
+    wordInput.focus();
+    startTime = performance.now();
+    timer = setInterval(updateTimer, 1000);
+  }
+
+  function updateTimer() {
+    timeLeft -= 1;
+    timerEl.textContent = `${timeLeft}s`;
+
+    const elapsedMinutes = (60 - timeLeft) / 60;
+    const currentWpm = elapsedMinutes > 0 ? Math.round((correctChars / 5) / elapsedMinutes) : 0;
+    wpmEl.textContent = currentWpm;
+
+    if (timeLeft <= 0) {
+      endTest();
+    }
+  }
+
+  function endTest() {
+    clearInterval(timer);
+    running = false;
+    wordInput.disabled = true;
+    const elapsedMinutes = 1;
+    const finalWpm = Math.round((correctChars / 5) / elapsedMinutes);
+    wpmEl.textContent = finalWpm;
+    resultEl.textContent = `Average WPM: ${finalWpm}`;
+  }
+
+  function checkWord(value) {
+    const currentWord = words[currentIndex];
+    const spans = wordBox.querySelectorAll("span");
+    if (!currentWord) {
+      return;
+    }
+
+    if (value === currentWord) {
+      spans[currentIndex].classList.add("correct");
+      correctChars += currentWord.length;
+    } else {
+      spans[currentIndex].classList.add("incorrect");
+    }
+
+    spans[currentIndex].classList.remove("current");
+    currentIndex += 1;
+
+    if (currentIndex < spans.length) {
+      spans[currentIndex].classList.add("current");
+    } else {
+      shuffleWords();
+      renderWords();
+      currentIndex = 0;
+    }
+  }
+
+  wordInput.addEventListener("keydown", (event) => {
+    if (!running) {
+      return;
+    }
+
+    if (event.key === " ") {
+      event.preventDefault();
+      const value = wordInput.value.trim();
+      if (value.length > 0) {
+        checkWord(value);
+      }
+      wordInput.value = "";
+    }
+  });
+
+  startBtn.addEventListener("click", () => {
+    resetTest();
+    startTest();
+  });
+
+  resetTest();
+</script>
+</body>
+</html>
